@@ -4,12 +4,11 @@ import cats.parse.Parser
 import cats.parse.Rfc5234._
 import cats.parse.Parser0
 import cats.data.NonEmptyList
-import online.aoxiang.tomls.ast.TInteger
+import online.aoxiang.tomls.ast._
 
 object TomlsParser {
 
-  /** 
-    * parse integer from -2^63 to 2^63-1
+  /** parse integer from -2^63 to 2^63-1
     */
   def integer: Parser[TInteger] = {
     import ast._
@@ -51,4 +50,9 @@ object TomlsParser {
     hex_int | oct_int | bin_int | dec_int
   }
 
+  /** parse boolean
+    */
+  def boolean: Parser[TBoolean] = {
+    (Parser.string("true") | Parser.string("false")).string.map(java.lang.Boolean.parseBoolean(_))
+  }
 }

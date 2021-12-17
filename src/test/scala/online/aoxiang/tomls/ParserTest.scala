@@ -52,8 +52,13 @@ class ParserTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks
       TomlsParser.integer.parseAll(s) shouldBe Symbol("isLeft")
     }
 
-    // Valid for parser but not valid for number
+    // Valid for parser but not valid as integer
     TomlsParser.integer.parseAll(s"1${Long.MaxValue}") shouldBe Symbol("isRight")
     TomlsParser.integer.parseAll(s"1${Long.MaxValue}").flatMap(_.value) shouldBe Symbol("isLeft")
+  }
+
+  test("Parse valid boolean") {
+    TomlsParser.boolean.parseAll("true") should be(Right(true))
+    TomlsParser.boolean.parseAll("false") should be(Right(false))
   }
 }
