@@ -13,15 +13,15 @@ object TomlsParser {
   def integer: Parser[TInteger] = {
     import ast._
     val underscore = Parser.char('_')
-    val digit1_9 = Parser.charIn(for { i <- 1 to 9 } yield (i + 48).toChar)
-    val digit0_7 = Parser.charIn(for { i <- 0 to 7 } yield (i + 48).toChar)
-    val digit0_1 = Parser.charIn(for { i <- 0 to 1 } yield (i + 48).toChar)
+    val digit1_9 = Parser.charIn('1' to '9')
+    val digit0_7 = Parser.charIn('0' to '7')
+    val digit0_1 = Parser.charIn('0' to '1')
 
     val hex_prefix = Parser.string("0x")
     val oct_prefix = Parser.string("0o")
     val bin_prefix = Parser.string("0b")
 
-    val unsigned_dec_int = ((digit1_9 ~ (digit | underscore *> digit).rep(1)).backtrack | digit)
+    val unsigned_dec_int = ((digit1_9 ~ ((underscore.?.with1 *> digit).rep)).backtrack | digit)
       .map(s =>
         s match {
           case c: Char => s"${c}"
@@ -35,15 +35,15 @@ object TomlsParser {
       .map(DecInteger(_, _))
 
     val hex_int =
-      (hex_prefix *> hexdig ~ (hexdig | (underscore *> hexdig)).rep0)
+      (hex_prefix *> hexdig ~ (underscore.?.with1 *> hexdig).rep0)
         .map((hd, tl) => (hd :: tl).mkString)
         .map(HexInteger(_))
     val oct_int =
-      (oct_prefix *> digit0_7 ~ (digit0_7 | (underscore *> digit0_7)).rep0)
+      (oct_prefix *> digit0_7 ~ (underscore.?.with1 *> digit0_7).rep0)
         .map((hd, tl) => (hd :: tl).mkString)
         .map(OctInteger(_))
     val bin_int =
-      (bin_prefix *> digit0_1 ~ (digit0_1 | (underscore *> digit0_1)).rep0)
+      (bin_prefix *> digit0_1 ~ (underscore.?.with1 *> digit0_1).rep0)
         .map((hd, tl) => (hd :: tl).mkString)
         .map(BinInteger(_))
 
@@ -60,16 +60,15 @@ object TomlsParser {
     */
   def time: Parser[TTime] = {
     import ast._
-    val date_full_year = digit.repExactlyAs[List[_]](4).string.map(Integer.parseInt(_))
-    def digits_2 = digit.repExactlyAs[List[_]](2).string.map(Integer.parseInt(_))
-    val date_month = digits_2
-    val date_mday = digits_2
-    val time_hour = digits_2
-    val time_minute = digits_2
-    val time_second = digits_2
+    val date_full_year = digit.rep(4, 4)
+    val date_month = digit.rep(2, 2)
+    val date_mday = digit.rep(2, 2)
+    val time_hour = digit.rep(2, 2)
+    val time_minute = digit.rep(2, 2)
+    val time_second = digit.rep(2, 2)
     val time_delim = sp | Parser.ignoreCaseChar('T')
     val time_secfrac = Parser.char('.') *> digit.rep(1)
-    val time_numoffset = (Parser.char('+') | Parser.char('-')) *> time_hour ~ Parser.char(':') ~ time_minute
+    val time_numoffset = (Parser.char('+') | Parser.char('-')) ~ time_hour ~ Parser.char(':') ~ time_minute
     val time_offset = (Parser.ignoreCaseChar('Z') | time_numoffset).string
 
     val partial_time =

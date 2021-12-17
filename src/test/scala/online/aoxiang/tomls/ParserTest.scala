@@ -46,7 +46,20 @@ class ParserTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks
   }
 
   test("Parse invalid integers") {
-    val testCases = Table("wrong inputs", "asdf", "0X123", "0B456", "000000", "0_1", "1____3____5____7")
+    val testCases = Table(
+      "wrong inputs",
+      "asdf",
+      "0X123",
+      "0B456",
+      "0O11",
+      "0o",
+      "0x",
+      "0b",
+      "000000",
+      "0_1",
+      "1__1",
+      "1____3____5____7"
+    )
 
     forAll(testCases) { (s: String) =>
       TomlsParser.integer.parseAll(s) shouldBe Symbol("isLeft")
