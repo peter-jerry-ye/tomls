@@ -30,19 +30,30 @@ class ParserTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks
     )
 
     forAll(testCases) { (s: String, n: Long) =>
-      TomlsParser.integer.parse(s) should be(Right(("", n)))
+      TomlsParser.integer.parseAll(s).flatMap(_.value) should be(Right(n))
     }
 
     // hex, oct, bin without underscore
     forAll { (n: Long) =>
-      TomlsParser.integer.parse(s"${n}") should be(Right("", n))
+      TomlsParser.integer.parseAll(s"${n}").flatMap(_.value) should be(Right(n))
       whenever(n >= 0) {
-        TomlsParser.integer.parse(s"${n}") should be(Right("", n))
-        TomlsParser.integer.parse(s"0x${n.toHexString}") should be(Right(("", n)))
-        TomlsParser.integer.parse(s"0o${n.toOctalString}") should be(Right(("", n)))
-        TomlsParser.integer.parse(s"0b${n.toBinaryString}") should be(Right(("", n)))
+        TomlsParser.integer.parseAll(s"${n}").flatMap(_.value) should be(Right(n))
+        TomlsParser.integer.parseAll(s"0x${n.toHexString}").flatMap(_.value) should be(Right(n))
+        TomlsParser.integer.parseAll(s"0o${n.toOctalString}").flatMap(_.value) should be(Right(n))
+        TomlsParser.integer.parseAll(s"0b${n.toBinaryString}").flatMap(_.value) should be(Right(n))
       }
     }
+  }
 
+  test("Parse invalid integers") {
+    val testCases = Table("wrong inputs", "asdf", "0X123", "0B456", "000000", "0_1", "1____3____5____7")
+
+    forAll(testCases) { (s: String) =>
+      TomlsParser.integer.parseAll(s) shouldBe Symbol("isLeft")
+    }
+
+    // Valid for parser but not valid for number
+    TomlsParser.integer.parseAll(s"1${Long.MaxValue}") shouldBe Symbol("isRight")
+    TomlsParser.integer.parseAll(s"1${Long.MaxValue}").flatMap(_.value) shouldBe Symbol("isLeft")
   }
 }
