@@ -7,5 +7,10 @@ lazy val root = project
   .in(file("."))
   .settings(
     name := "tomls",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.10" % "test"
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-core" % "2.7.0",
+      "org.typelevel" %% "cats-parse" % "0.3.6",
+      "org.scalatest" %% "scalatest" % "3.2.10" % "test",
+      "org.scalatestplus" %% "scalacheck-1-15" % "3.2.10.0" % "test"
+    )
   )
