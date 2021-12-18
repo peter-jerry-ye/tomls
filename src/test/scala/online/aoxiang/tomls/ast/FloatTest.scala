@@ -34,6 +34,22 @@ class FloatTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks 
       "-nan"
     )
 
+    forAll(nanCases) { (s: String) =>
+      {
+        TFloat.parser.parseAll(s).flatMap(_.value).map(_.isNaN) should be(Right(true))
+      }
+    }
+
+    forAll { (f: Double) =>
+      {
+        val s0 = f"${f}"
+        TFloat.parser.parseAll(s0).flatMap(_.value) should be(Right(java.lang.Double.parseDouble(s0)))
+        val s1 = f"${f}%g"
+        TFloat.parser.parseAll(s1).flatMap(_.value) should be(Right(java.lang.Double.parseDouble(s1)))
+        val s2 = f"${f}%e"
+        TFloat.parser.parseAll(s2).flatMap(_.value) should be(Right(java.lang.Double.parseDouble(s2)))
+      }
+    }
   }
 
   test("Parse invalid float") {
