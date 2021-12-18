@@ -50,6 +50,46 @@ object TomlsParser {
     hex_int | oct_int | bin_int | dec_int
   }
 
+  def float: Parser[TFloat] = {
+    import ast._
+    val inf = Parser.string("inf")
+    val nan = Parser.string("nan")
+    val specialFloat =
+      (Parser.charIn('+', '-').?.with1 ~ (inf | nan).string).map((sign, float) => SpecialFloat(sign, float))
+
+    val underscore = Parser.char('_')
+    val zero_prefixable_int = (digit ~ (underscore.?.with1 *> digit).rep0).map(_ :: _).map(_.mkString)
+
+    val float_exp_part = ((Parser.charIn('+', '-').?.with1) ~ zero_prefixable_int)
+      .map((sign, float) => s"${sign.getOrElse("")}${float.mkString}")
+    val exp = Parser.ignoreCaseChar('e') *> float_exp_part
+
+    val frac = Parser.char('.') *> zero_prefixable_int
+
+    val digit1_9 = Parser.charIn('1' to '9')
+    val unsigned_dec_int = ((digit1_9 ~ ((underscore.?.with1 *> digit).rep)).backtrack | digit)
+      .map(s =>
+        s match {
+          case c: Char => s"${c}"
+          case (hd, tl): (Char, NonEmptyList[Char]) => {
+            (hd :: tl).toList.mkString
+          }
+        }
+      )
+    val dec_int = (Parser.charIn('+', '-').?.with1 ~ unsigned_dec_int).map((ch, v) => s"${ch.getOrElse("")}${v}")
+    val float_int_part = dec_int
+
+    val normalFloat: Parser[TFloat] = (float_int_part ~ (exp.backtrack | (frac ~ exp.?)))
+      .map((int_part, frac) =>
+        frac match {
+          case e: String                        => NormalFloat(int_part, None, Some(e))
+          case (f, e): (String, Option[String]) => NormalFloat(int_part, Some(f), e)
+        }
+      )
+
+    normalFloat.backtrack | specialFloat
+  }
+
   /** parse boolean
     */
   def boolean: Parser[TBoolean] = {
