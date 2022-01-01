@@ -14,4 +14,18 @@ class StringTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks
     // Unicode case
     TString.basicStringParser.parseAll(raw""""\u0041 \U0001F353"""") should be(Right(BasicString("A \uD83C\uDF53")))
   }
+
+  test("Parse valid literal strings") {
+    // Cases in official document
+    val testCases = Table(
+      "input",
+      raw"C:\Users\nodejs\templates",
+      raw"""\\ServerX\admin$$\system32\""",
+      raw"""Tom "Dubs" Preston-Werner""",
+      raw"""<\i\c*\s*>"""
+    )
+    forAll(testCases) { s =>
+      TString.literalStringParser.parseAll(raw"'${s}'") should be(Right(LiteralString(s)))
+    }
+  }
 }

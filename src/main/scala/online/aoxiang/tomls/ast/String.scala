@@ -42,6 +42,16 @@ object TString {
     val basic_char: Parser[String] = basic_unescaped | escaped
     basic_char.rep0.surroundedBy(Parser.char('"')).map(_.mkString).map(BasicString(_))
   }
+
+  val literalStringParser: Parser0[LiteralString] = {
+    val literal_char =
+      (htab
+        | Parser.charIn(0x20.toChar to 0x26.toChar)
+        | Parser.charIn(0x28.toChar to 0x7e.toChar)
+        | Parsers.non_ascii).string
+
+    literal_char.rep0.surroundedBy(Parser.char('\'')).map(_.mkString).map(LiteralString(_))
+  }
 }
 
 case class BasicString(value: String) extends TString
