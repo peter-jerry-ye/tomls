@@ -15,6 +15,34 @@ class StringTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks
     TString.basicStringParser.parseAll(raw""""\u0041 \U0001F353"""") should be(Right(BasicString("A \uD83C\uDF53")))
   }
 
+  test("Parse valid multiline basic strings") {
+    // Cases in official document
+    TString.mlBasicStringParser.parseAll(s"""\"\"\"
+    |Roses are red
+    |Violets are blue\"\"\"""".stripMargin) should be(
+      Right(MLBasicString(s"Roses are red${util.Properties.lineSeparator}Violets are blue"))
+    )
+    TString.mlBasicStringParser.parseAll(s"""\"\"\"
+    |The quick brown \\
+    |
+    |
+    |  fox jumps over \\
+    |    the lazy dog.\"\"\"""".stripMargin) should be(
+      Right(MLBasicString("The quick brown fox jumps over the lazy dog."))
+    )
+    val testCases =
+      Table(
+        ("input", "expected"),
+        (raw"""这有两个引号：""。够简单。""", raw"""这有两个引号：""。够简单。"""),
+        (raw"""这有三个引号：""\"。""", "这有三个引号：\"\"\"。"),
+        ("这有十五个引号：\"\"\\\"\"\"\\\"\"\"\\\"\"\"\\\"\"\"\\\"。", "这有十五个引号：\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"。"),
+        (raw""""这，"她说，"只是个无意义的条款。"""", raw""""这，"她说，"只是个无意义的条款。"""")
+      )
+    forAll(testCases) { (input: String, expected: String) =>
+      TString.mlBasicStringParser.parseAll(s"\"\"\"${input}\"\"\"") should be(Right(MLBasicString(expected)))
+    }
+  }
+
   test("Parse valid literal strings") {
     // Cases in official document
     val testCases = Table(
