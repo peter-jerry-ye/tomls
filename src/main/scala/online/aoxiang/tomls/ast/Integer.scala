@@ -33,16 +33,16 @@ object TInteger {
       .map(DecInteger(_, _))
 
     val hex_int =
-      (hex_prefix *> hexdig ~ (underscore.?.with1 *> hexdig).rep0)
-        .map((hd, tl) => (hd :: tl).mkString)
+      (hex_prefix *> hexdig.repSep(underscore.?))
+        .map(_.toList.mkString)
         .map(HexInteger(_))
     val oct_int =
-      (oct_prefix *> digit0_7 ~ (underscore.?.with1 *> digit0_7).rep0)
-        .map((hd, tl) => (hd :: tl).mkString)
+      (oct_prefix *> digit0_7.repSep(underscore.?))
+        .map(_.toList.mkString)
         .map(OctInteger(_))
     val bin_int =
-      (bin_prefix *> digit0_1 ~ (underscore.?.with1 *> digit0_1).rep0)
-        .map((hd, tl) => (hd :: tl).mkString)
+      (bin_prefix *> digit0_1.repSep(underscore.?))
+        .map(_.toList.mkString)
         .map(BinInteger(_))
 
     hex_int | oct_int | bin_int | dec_int

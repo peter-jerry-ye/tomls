@@ -43,6 +43,18 @@ class IntegerTest extends AnyFunSuite with Matchers with ScalaCheckPropertyCheck
         TInteger.parser.parseAll(s"0b${n.toBinaryString}").flatMap(_.value) should be(Right(n))
       }
     }
+
+    // hex, oct, bin with underscore
+    TInteger.parser.parseAll("0x0_d_e_a_d_b_e_e_f").flatMap(_.value) should be(
+      Right(
+        java.lang.Long.parseLong("deadbeef", 16)
+      )
+    )
+    TInteger.parser.parseAll("0o0_123_45_67").flatMap(_.value) should be(Right(java.lang.Long.parseLong("1234567", 8)))
+    TInteger.parser.parseAll("0o7_55").flatMap(_.value) should be(Right(java.lang.Long.parseLong("755", 8)))
+    TInteger.parser.parseAll("0b1_10_101_1_0").flatMap(_.value) should be(
+      Right(java.lang.Long.parseLong("11010110", 2))
+    )
   }
 
   test("Parse invalid integers") {
@@ -58,7 +70,9 @@ class IntegerTest extends AnyFunSuite with Matchers with ScalaCheckPropertyCheck
       "000000",
       "0_1",
       "1__1",
-      "1____3____5____7"
+      "1____3____5____7",
+      "0x_deadbeef",
+      "0o_11"
     )
 
     forAll(testCases) { (s: String) =>
