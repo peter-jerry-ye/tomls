@@ -54,6 +54,26 @@ object TString {
 
     literal_char.rep0.surroundedBy(Parser.char('\'')).map(_.mkString).map(LiteralString(_))
   }
+
+  val mlLiteralStringParser: Parser0[MLLiteralString] = {
+    val delim_start = Parser.string("'''")
+    val delim_end = Parser.string("'''") *> Parser.char('\'').rep0(0, 2).string
+
+    val mll_quotes = Parser.char('\'').rep(1, 2).string
+    val mll_char = (htab
+      | Parser.charIn(0x20.toChar to 0x26.toChar)
+      | Parser.charIn(0x28.toChar to 0x7e.toChar)
+      | non_ascii).string
+    val mll_content = mll_char | newline.string
+
+    val ml_literal_body = mll_content.rep0 ~ (mll_quotes ~ mll_content.rep).backtrack.rep0
+    (delim_start *> newline.? *> ml_literal_body ~ delim_end)
+      .map({ case ((l1, l2), quotes) =>
+        MLLiteralString(
+          s"${l1.mkString}${l2.flatMap({ case (hd, tl) => (hd :: tl).toList }).mkString}${quotes}"
+        )
+      })
+  }
 }
 
 case class BasicString(value: String) extends TString

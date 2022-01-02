@@ -56,4 +56,22 @@ class StringTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks
       TString.literalStringParser.parseAll(raw"'${s}'") should be(Right(LiteralString(s)))
     }
   }
+
+  test("Parse valid multiline literal strings") {
+    // Cases in official document
+    val testCases = Table(
+      "input",
+      raw"I [dw]on't need \d{2} apples",
+      raw"""
+      |原始字符串中的
+      |第一个换行被剔除了。
+      |   所有其它空白
+      |   都保留了。""".stripMargin,
+      "这有十五个引号：\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+      "'那，'她说，'仍然没有意义。'"
+    )
+    forAll(testCases) { s =>
+      TString.mlLiteralStringParser.parseAll(s"'''${s}'''") should be(Right(MLLiteralString(s.stripLeading)))
+    }
+  }
 }
