@@ -12,7 +12,7 @@ trait TString {
 }
 
 object TString {
-  val basicStringParser: Parser0[BasicString] = {
+  val basicStringParser: Parser[BasicString] = {
     val basic_unescaped: Parser[String] =
       (wsp | Parser.char('!')
         | Parser.charIn(0x23.toChar to 0x5b.toChar)
@@ -20,10 +20,10 @@ object TString {
         | non_ascii).string
 
     val basic_char: Parser[String] = basic_unescaped | escaped
-    basic_char.rep0.surroundedBy(Parser.char('"')).map(_.mkString).map(BasicString(_))
+    (basic_char.rep0.with1 surroundedBy Parser.char('"')).map(_.mkString).map(BasicString(_))
   }
 
-  val mlBasicStringParser: Parser0[MLBasicString] = {
+  val mlBasicStringParser: Parser[MLBasicString] = {
     val delim_start = Parser.string("\"\"\"")
     val delim_end = Parser.string("\"\"\"") *> Parser.char('\"').rep0(0, 2).string
 
@@ -45,17 +45,17 @@ object TString {
       })
   }
 
-  val literalStringParser: Parser0[LiteralString] = {
+  val literalStringParser: Parser[LiteralString] = {
     val literal_char =
       (htab
         | Parser.charIn(0x20.toChar to 0x26.toChar)
         | Parser.charIn(0x28.toChar to 0x7e.toChar)
         | non_ascii).string
 
-    literal_char.rep0.surroundedBy(Parser.char('\'')).map(_.mkString).map(LiteralString(_))
+    (literal_char.rep0.with1 surroundedBy Parser.char('\'')).map(_.mkString).map(LiteralString(_))
   }
 
-  val mlLiteralStringParser: Parser0[MLLiteralString] = {
+  val mlLiteralStringParser: Parser[MLLiteralString] = {
     val delim_start = Parser.string("'''")
     val delim_end = Parser.string("'''") *> Parser.char('\'').rep0(0, 2).string
 
