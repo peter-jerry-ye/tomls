@@ -7,22 +7,22 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 class StringTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks {
   test("Parse valid basic strings") {
     // Cases in official document
-    TString.basicStringParser.parseAll(raw""""我是一个字符串。\"你可以把我引起来\"。姓名\tJos\u00E9\n位置\t旧金山。"""") should be(
+    PString.basicStringParser.parseAll(raw""""我是一个字符串。\"你可以把我引起来\"。姓名\tJos\u00E9\n位置\t旧金山。"""") should be(
       Right(BasicString(s"我是一个字符串。\"你可以把我引起来\"。姓名\tJos\u00E9\n位置\t旧金山。"))
     )
 
     // Unicode case
-    TString.basicStringParser.parseAll(raw""""\u0041 \U0001F353"""") should be(Right(BasicString("A \uD83C\uDF53")))
+    PString.basicStringParser.parseAll(raw""""\u0041 \U0001F353"""") should be(Right(BasicString("A \uD83C\uDF53")))
   }
 
   test("Parse valid multiline basic strings") {
     // Cases in official document
-    TString.mlBasicStringParser.parseAll(s"""\"\"\"
+    PString.mlBasicStringParser.parseAll(s"""\"\"\"
     |Roses are red
     |Violets are blue\"\"\"""".stripMargin) should be(
       Right(MLBasicString(s"Roses are red${util.Properties.lineSeparator}Violets are blue"))
     )
-    TString.mlBasicStringParser.parseAll(s"""\"\"\"
+    PString.mlBasicStringParser.parseAll(s"""\"\"\"
     |The quick brown \\
     |
     |
@@ -39,7 +39,7 @@ class StringTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks
         (raw""""这，"她说，"只是个无意义的条款。"""", raw""""这，"她说，"只是个无意义的条款。"""")
       )
     forAll(testCases) { (input: String, expected: String) =>
-      TString.mlBasicStringParser.parseAll(s"\"\"\"${input}\"\"\"") should be(Right(MLBasicString(expected)))
+      PString.mlBasicStringParser.parseAll(s"\"\"\"${input}\"\"\"") should be(Right(MLBasicString(expected)))
     }
   }
 
@@ -53,7 +53,7 @@ class StringTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks
       raw"""<\i\c*\s*>"""
     )
     forAll(testCases) { s =>
-      TString.literalStringParser.parseAll(raw"'${s}'") should be(Right(LiteralString(s)))
+      PString.literalStringParser.parseAll(raw"'${s}'") should be(Right(LiteralString(s)))
     }
   }
 
@@ -71,7 +71,7 @@ class StringTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks
       "'那，'她说，'仍然没有意义。'"
     )
     forAll(testCases) { s =>
-      TString.mlLiteralStringParser.parseAll(s"'''${s}'''") should be(Right(MLLiteralString(s.stripLeading)))
+      PString.mlLiteralStringParser.parseAll(s"'''${s}'''") should be(Right(MLLiteralString(s.stripLeading)))
     }
   }
 }

@@ -3,12 +3,13 @@ import cats.implicits._
 import cats.parse.Parser
 import cats.parse.Rfc5234._
 import cats.data.NonEmptyList
+import online.aoxiang.tomls.ast.TInteger
 
-sealed trait TInteger {
+sealed trait PInteger {
   def value: Either[NumberFormatException, Long]
 }
 
-object TInteger {
+object PInteger {
   val parser: Parser[TInteger] = {
     val underscore = Parser.char('_')
     val digit1_9 = Parser.charIn('1' to '9')
@@ -45,19 +46,21 @@ object TInteger {
         .map(_.toList.mkString)
         .map(BinInteger(_))
 
-    hex_int | oct_int | bin_int | dec_int
+    (hex_int | oct_int | bin_int | dec_int).flatMap(n =>
+      n.value.fold(e => Parser.failWith(s"Not an integer: ${e.getLocalizedMessage}"), v => Parser.pure(TInteger(v)))
+    )
   }
 }
 
-case class BinInteger(str: String) extends TInteger {
+case class BinInteger(str: String) extends PInteger {
   def value = Either.catchOnly[NumberFormatException](java.lang.Long.parseLong(str, 2))
 }
-case class OctInteger(str: String) extends TInteger {
+case class OctInteger(str: String) extends PInteger {
   def value = Either.catchOnly[NumberFormatException](java.lang.Long.parseLong(str, 8))
 }
-case class HexInteger(str: String) extends TInteger {
+case class HexInteger(str: String) extends PInteger {
   def value = Either.catchOnly[NumberFormatException](java.lang.Long.parseLong(str, 16))
 }
-case class DecInteger(sign: Option[Char], str: String) extends TInteger {
+case class DecInteger(sign: Option[Char], str: String) extends PInteger {
   def value = Either.catchOnly[NumberFormatException](java.lang.Long.parseLong(s"${sign.getOrElse("")}${str}"))
 }

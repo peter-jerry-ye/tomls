@@ -4,12 +4,13 @@ import cats.implicits._
 import cats.parse.Parser
 import cats.parse.Rfc5234._
 import cats.data.NonEmptyList
+import online.aoxiang.tomls.ast.TFloat
 
-sealed trait TFloat {
+sealed trait PFloat {
   def value: Either[NumberFormatException, Double]
 }
 
-object TFloat {
+object PFloat {
   val parser: Parser[TFloat] = {
     val inf = Parser.string("inf")
     val nan = Parser.string("nan")
@@ -38,7 +39,7 @@ object TFloat {
     val dec_int = (Parser.charIn('+', '-').?.with1 ~ unsigned_dec_int).map((ch, v) => s"${ch.getOrElse("")}${v}")
     val float_int_part = dec_int
 
-    val normalFloat: Parser[TFloat] = (float_int_part ~ (exp.backtrack | (frac ~ exp.?)))
+    val normalFloat: Parser[PFloat] = (float_int_part ~ (exp.backtrack | (frac ~ exp.?)))
       .map((int_part, frac) =>
         frac match {
           case e: String                        => NormalFloat(int_part, None, Some(e))
@@ -46,11 +47,16 @@ object TFloat {
         }
       )
 
-    normalFloat.backtrack | specialFloat
+    (normalFloat.backtrack | specialFloat).flatMap(f =>
+      f.value.fold(
+        e => Parser.failWith(s"Not a valid double: ${e.getLocalizedMessage}"),
+        v => Parser.pure(TFloat(v))
+      )
+    )
   }
 }
 
-case class NormalFloat(intPart: String, frac: Option[String], exp: Option[String]) extends TFloat {
+case class NormalFloat(intPart: String, frac: Option[String], exp: Option[String]) extends PFloat {
   override def value = Either.catchOnly[NumberFormatException] {
     exp match {
       case Some(e) => java.lang.Double.parseDouble(s"${intPart}.${frac.getOrElse("")}E${e}")
@@ -59,7 +65,7 @@ case class NormalFloat(intPart: String, frac: Option[String], exp: Option[String
   }
 }
 
-case class SpecialFloat(sign: Option[Char], float: String) extends TFloat {
+case class SpecialFloat(sign: Option[Char], float: String) extends PFloat {
   override def value = (sign, float) match {
     case (Some('-'), "inf") => Right(Double.NegativeInfinity)
     case (Some('+'), "inf") => Right(Double.PositiveInfinity)

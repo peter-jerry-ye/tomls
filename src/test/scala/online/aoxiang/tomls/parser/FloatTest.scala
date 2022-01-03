@@ -3,6 +3,7 @@ package online.aoxiang.tomls.parser
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import online.aoxiang.tomls.ast.TFloat
 
 class FloatTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks {
   test("Parse valid float") {
@@ -24,7 +25,7 @@ class FloatTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks 
     )
 
     forAll(testCases) { (s: String, f: Double) =>
-      TFloat.parser.parseAll(s).flatMap(_.value) should be(Right(f))
+      PFloat.parser.parseAll(s).map(_.value) should be(Right(f))
     }
 
     val nanCases = Table(
@@ -36,18 +37,18 @@ class FloatTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks 
 
     forAll(nanCases) { (s: String) =>
       {
-        TFloat.parser.parseAll(s).flatMap(_.value).map(_.isNaN) should be(Right(true))
+        PFloat.parser.parseAll(s).map(_.value.isNaN) should be(Right(true))
       }
     }
 
     forAll { (f: Double) =>
       {
         val s0 = f"${f}"
-        TFloat.parser.parseAll(s0).flatMap(_.value) should be(Right(java.lang.Double.parseDouble(s0)))
+        PFloat.parser.parseAll(s0).map(_.value) should be(Right(java.lang.Double.parseDouble(s0)))
         val s1 = f"${f}%g"
-        TFloat.parser.parseAll(s1).flatMap(_.value) should be(Right(java.lang.Double.parseDouble(s1)))
+        PFloat.parser.parseAll(s1).map(_.value) should be(Right(java.lang.Double.parseDouble(s1)))
         val s2 = f"${f}%e"
-        TFloat.parser.parseAll(s2).flatMap(_.value) should be(Right(java.lang.Double.parseDouble(s2)))
+        PFloat.parser.parseAll(s2).map(_.value) should be(Right(java.lang.Double.parseDouble(s2)))
       }
     }
   }
@@ -62,6 +63,6 @@ class FloatTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks 
       "3.e+20"
     )
 
-    forAll(testCases) { (s: String) => TFloat.parser.parseAll(s) shouldBe Symbol("isLeft") }
+    forAll(testCases) { (s: String) => PFloat.parser.parseAll(s) shouldBe Symbol("isLeft") }
   }
 }

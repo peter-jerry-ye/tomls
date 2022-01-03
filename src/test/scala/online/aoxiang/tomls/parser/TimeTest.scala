@@ -3,6 +3,7 @@ package online.aoxiang.tomls.parser
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import online.aoxiang.tomls.ast._
 
 class TimeTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks {
   test("Parse valid time") {
@@ -27,7 +28,16 @@ class TimeTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks {
       ("00:32:00.999999", LocalTime.of(0, 32, 0, 999999000))
     )
     forAll(testCases) { (s: String, t: LocalDate | LocalTime | LocalDateTime | ZonedDateTime) =>
-      TTime.parser.parseAll(s).flatMap(_.value) should be(Right(t))
+      PTime.parser
+        .parseAll(s)
+        .map(t =>
+          t match {
+            case TLocalTime(v)      => v
+            case TLocalDate(v)      => v
+            case TLocalDateTime(v)  => v
+            case TOffsetDateTime(v) => v
+          }
+        ) should be(Right(t))
     }
   }
 }

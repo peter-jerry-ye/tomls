@@ -30,29 +30,29 @@ class IntegerTest extends AnyFunSuite with Matchers with ScalaCheckPropertyCheck
     )
 
     forAll(testCases) { (s: String, n: Long) =>
-      TInteger.parser.parseAll(s).flatMap(_.value) should be(Right(n))
+      PInteger.parser.parseAll(s).map(_.value) should be(Right(n))
     }
 
     // hex, oct, bin without underscore
     forAll { (n: Long) =>
-      TInteger.parser.parseAll(s"${n}").flatMap(_.value) should be(Right(n))
+      PInteger.parser.parseAll(s"${n}").map(_.value) should be(Right(n))
       whenever(n >= 0) {
-        TInteger.parser.parseAll(s"${n}").flatMap(_.value) should be(Right(n))
-        TInteger.parser.parseAll(s"0x${n.toHexString}").flatMap(_.value) should be(Right(n))
-        TInteger.parser.parseAll(s"0o${n.toOctalString}").flatMap(_.value) should be(Right(n))
-        TInteger.parser.parseAll(s"0b${n.toBinaryString}").flatMap(_.value) should be(Right(n))
+        PInteger.parser.parseAll(s"${n}").map(_.value) should be(Right(n))
+        PInteger.parser.parseAll(s"0x${n.toHexString}").map(_.value) should be(Right(n))
+        PInteger.parser.parseAll(s"0o${n.toOctalString}").map(_.value) should be(Right(n))
+        PInteger.parser.parseAll(s"0b${n.toBinaryString}").map(_.value) should be(Right(n))
       }
     }
 
     // hex, oct, bin with underscore
-    TInteger.parser.parseAll("0x0_d_e_a_d_b_e_e_f").flatMap(_.value) should be(
+    PInteger.parser.parseAll("0x0_d_e_a_d_b_e_e_f").map(_.value) should be(
       Right(
         java.lang.Long.parseLong("deadbeef", 16)
       )
     )
-    TInteger.parser.parseAll("0o0_123_45_67").flatMap(_.value) should be(Right(java.lang.Long.parseLong("1234567", 8)))
-    TInteger.parser.parseAll("0o7_55").flatMap(_.value) should be(Right(java.lang.Long.parseLong("755", 8)))
-    TInteger.parser.parseAll("0b1_10_101_1_0").flatMap(_.value) should be(
+    PInteger.parser.parseAll("0o0_123_45_67").map(_.value) should be(Right(java.lang.Long.parseLong("1234567", 8)))
+    PInteger.parser.parseAll("0o7_55").map(_.value) should be(Right(java.lang.Long.parseLong("755", 8)))
+    PInteger.parser.parseAll("0b1_10_101_1_0").map(_.value) should be(
       Right(java.lang.Long.parseLong("11010110", 2))
     )
   }
@@ -72,15 +72,12 @@ class IntegerTest extends AnyFunSuite with Matchers with ScalaCheckPropertyCheck
       "1__1",
       "1____3____5____7",
       "0x_deadbeef",
-      "0o_11"
+      "0o_11",
+      s"1${Long.MaxValue}"
     )
 
     forAll(testCases) { (s: String) =>
-      TInteger.parser.parseAll(s) shouldBe Symbol("isLeft")
+      PInteger.parser.parseAll(s) shouldBe Symbol("isLeft")
     }
-
-    // Valid for parser but not valid as integer
-    TInteger.parser.parseAll(s"1${Long.MaxValue}") shouldBe Symbol("isRight")
-    TInteger.parser.parseAll(s"1${Long.MaxValue}").flatMap(_.value) shouldBe Symbol("isLeft")
   }
 }

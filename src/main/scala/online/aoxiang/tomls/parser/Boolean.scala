@@ -1,11 +1,10 @@
 package online.aoxiang.tomls.parser
 
 import cats.parse.Parser
+import online.aoxiang.tomls.ast.TBoolean
 
-type TBoolean = Boolean
-
-object TBoolean {
+object PBoolean {
   val parser: Parser[TBoolean] = {
-    (Parser.string("true") | Parser.string("false")).string.map(java.lang.Boolean.parseBoolean(_))
+    (Parser.string("true").as(TBoolean(true)) | Parser.string("false").as(TBoolean(false)))
   }
 }

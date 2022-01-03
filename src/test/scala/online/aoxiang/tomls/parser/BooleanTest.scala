@@ -4,9 +4,11 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class BooleanTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks {
+import online.aoxiang.tomls.ast.TBoolean
+
+class BooleanTest extends AnyFunSuite with Matchers {
   test("Parse valid boolean") {
-    TBoolean.parser.parseAll("true") should be(Right(true))
-    TBoolean.parser.parseAll("false") should be(Right(false))
+    PBoolean.parser.parseAll("true").map(_.value) should be(Right(true))
+    PBoolean.parser.parseAll("false").map(_.value) should be(Right(false))
   }
 }

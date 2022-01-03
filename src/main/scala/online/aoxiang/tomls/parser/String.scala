@@ -6,12 +6,13 @@ import cats.parse.Parser
 import cats.parse.Parser0
 import cats.parse.Rfc5234._
 import cats.data.NonEmptyList
+import online.aoxiang.tomls.ast.TString
 
-trait TString {
+trait PString {
   def value: String
 }
 
-object TString {
+object PString {
   val basicStringParser: Parser[BasicString] = {
     val basic_unescaped: Parser[String] =
       (wsp | Parser.char('!')
@@ -74,12 +75,17 @@ object TString {
         )
       })
   }
+
+  val parser: Parser[TString] =
+    (mlLiteralStringParser.backtrack | mlBasicStringParser.backtrack | literalStringParser.backtrack | basicStringParser)
+      .map(_.value)
+      .map(TString(_))
 }
 
-case class BasicString(value: String) extends TString
+case class BasicString(value: String) extends PString
 
-case class LiteralString(value: String) extends TString
+case class LiteralString(value: String) extends PString
 
-case class MLBasicString(value: String) extends TString
+case class MLBasicString(value: String) extends PString
 
-case class MLLiteralString(value: String) extends TString
+case class MLLiteralString(value: String) extends PString
