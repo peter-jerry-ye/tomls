@@ -1,4 +1,4 @@
-package online.aoxiang.tomls.util
+package online.aoxiang.tomls.parser
 
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers

@@ -1,4 +1,4 @@
-package online.aoxiang.tomls.ast
+package online.aoxiang.tomls.parser
 
 import cats.implicits._
 import cats.parse.Parser

@@ -1,4 +1,4 @@
-package online.aoxiang.tomls.util
+package online.aoxiang.tomls.parser
 
 import cats.parse.Parser
 import cats.parse.Rfc5234._

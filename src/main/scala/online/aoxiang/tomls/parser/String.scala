@@ -1,6 +1,6 @@
-package online.aoxiang.tomls.ast
+package online.aoxiang.tomls.parser
 
-import online.aoxiang.tomls.util.Parsers._
+import Parsers._
 
 import cats.parse.Parser
 import cats.parse.Parser0
