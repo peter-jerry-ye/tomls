@@ -12,5 +12,14 @@ case class TOffsetDateTime(value: ZonedDateTime) extends TValue
 case class TLocalDateTime(value: LocalDateTime) extends TValue
 case class TLocalDate(value: LocalDate) extends TValue
 case class TLocalTime(value: LocalTime) extends TValue
-case class TArray(value: Seq[TValue]) extends TValue
-case class TTable(value: Map[String, TValue]) extends TValue
+sealed trait TArray extends TValue {
+  def value: List[TValue]
+}
+sealed trait TTable extends TValue {
+  def value: Map[String, TValue]
+}
+
+case class InlineArray(value: List[TValue]) extends TArray
+case class TableArray(value: List[TValue]) extends TArray
+case class InlineTable(value: Map[String, TValue]) extends TTable
+case class TableTable(value: Map[String, TValue]) extends TTable
