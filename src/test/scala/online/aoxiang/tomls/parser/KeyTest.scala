@@ -41,5 +41,8 @@ class KeyTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks {
     forAll(dottedKeys) { (s, expected) =>
       PKey.parser.parseAll(s) should be(Right(expected))
     }
+
+    // Additional tests
+    PKey.parser.parse("asdf ") should be(Right((" ", NonEmptyList("asdf", List.empty))))
   }
 }

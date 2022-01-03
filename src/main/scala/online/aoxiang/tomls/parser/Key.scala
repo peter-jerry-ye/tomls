@@ -12,7 +12,7 @@ object PKey {
     val simple_key: Parser[String] = quoted_key | unquoted_key
 
     val dot_sep = Parser.char('.').surroundedBy(ws)
-    val dotted_key: Parser[NonEmptyList[String]] = simple_key.repSep(dot_sep)
+    val dotted_key: Parser[NonEmptyList[String]] = simple_key.repSep(dot_sep.backtrack)
 
     dotted_key.backtrack
   }
