@@ -24,43 +24,31 @@ object PValue {
         path: List[String],
         newVal: TValue,
         cumulPath: List[String]
-    ): EitherT[Eval, String, TValue] = {
+    ): EitherT[Eval, String, TTable] = {
       path match {
         case Nil => EitherT(Eval.now(Left("Something's wrong. Please submit an issue.")))
         case hd :: Nil =>
           EitherT(Eval.now(value match {
-            case InlineTable(table) =>
-              if (cumulPath.nonEmpty) Left(s"Can't modify an inline table at: ${cumulPath.mkString(",")}")
-              else Right(InlineTable(table + (hd -> newVal)))
-            case TableTable(table) =>
-              if (table.contains(hd)) Left(s"Can't modify an existing value at: ${cumulPath.mkString(",")}")
-              else Right(TableTable(table + (hd -> newVal)))
-            case _ => Left(s"Not a table at: ${cumulPath.mkString(",")}")
+            case InlineTable(table) => Left(s"Can't modify a defined table at: ${cumulPath.mkString(",")}")
+            case IntermediateTable(table) =>
+              if (table.contains(hd)) Left(s"Can't modify a defined value at: ${cumulPath.mkString(",")}")
+              else Right(IntermediateTable(table + (hd -> newVal)))
+            case _ => Left(s"Can't modify a defined value at: ${cumulPath.mkString(",")}")
           }))
         case hd :: tl =>
           value match {
             case InlineTable(table) =>
-              if (cumulPath.nonEmpty)
-                EitherT(Eval.now(Left(s"Can't modify an inline table at: ${cumulPath.mkString(",")}")))
-              else {
-                if (table.contains(hd)) {
-                  EitherT(Eval.defer(insertValue(table(hd), tl, newVal, cumulPath :+ hd).value))
-                    .flatMapF(v => Eval.now(Right(InlineTable(table.updated(hd, v)))))
-                } else {
-                  EitherT(Eval.defer(insertValue(TableTable(Map.empty), tl, newVal, cumulPath :+ hd).value))
-                    .flatMapF(v => Eval.now(Right(InlineTable(table.updated(hd, v)))))
-                }
-              }
-            case TableTable(table) => (
+              EitherT(Eval.now(Left(s"Can't modify a defined at: ${cumulPath.mkString(",")}")))
+            case IntermediateTable(table) => (
               if (table.contains(hd)) {
                 EitherT(Eval.defer(insertValue(table(hd), tl, newVal, cumulPath :+ hd).value))
-                  .flatMapF(v => Eval.now(Right(TableTable(table.updated(hd, v)))))
+                  .flatMapF(v => Eval.now(Right(IntermediateTable(table.updated(hd, v)))))
               } else {
-                EitherT(Eval.defer(insertValue(TableTable(Map.empty), tl, newVal, cumulPath :+ hd).value))
-                  .flatMapF(v => Eval.now(Right(TableTable(table.updated(hd, v)))))
+                EitherT(Eval.defer(insertValue(IntermediateTable(Map.empty), tl, newVal, cumulPath :+ hd).value))
+                  .flatMapF(v => Eval.now(Right(IntermediateTable(table.updated(hd, v)))))
               }
             )
-            case _ => EitherT(Eval.now(Left(s"Not a table at: ${cumulPath.mkString(",")}")))
+            case _ => EitherT(Eval.now(Left(s"Can't modify a defined value at: ${cumulPath.mkString(",")}")))
           }
       }
     }
@@ -71,11 +59,11 @@ object PValue {
       .between(Parser.char('{') ~ ws, ws.with1 ~ Parser.char('}'))
       .map(_.map(_.toList).getOrElse(Nil))
       .map(pairs =>
-        pairs.foldM[[X] =>> EitherT[Eval, String, X], TValue](InlineTable(Map.empty))((value, pair) =>
+        pairs.foldM[[X] =>> EitherT[Eval, String, X], TTable](IntermediateTable(Map.empty))((value, pair) =>
           insertValue(value, pair._1.toList, pair._2, List.empty)
         )
       )
-      .flatMap(result => result.value.value.fold(e => Parser.failWith(e), v => Parser.pure(v)))
+      .flatMap(result => result.value.value.fold(e => Parser.failWith(e), v => Parser.pure(InlineTable(v.value))))
 
     PBoolean.parser.backtrack | PTime.parser.backtrack | PFloat.parser.backtrack | PInteger.parser.backtrack
       | PString.parser | pInlineTable | pInlineArray

@@ -17,9 +17,22 @@ sealed trait TArray extends TValue {
 }
 sealed trait TTable extends TValue {
   def value: Map[String, TValue]
+  def isDefined: Boolean
+  def isClosed: Boolean
 }
 
 case class InlineArray(value: List[TValue]) extends TArray
 case class TableArray(value: List[TValue]) extends TArray
-case class InlineTable(value: Map[String, TValue]) extends TTable
-case class TableTable(value: Map[String, TValue]) extends TTable
+
+case class InlineTable(value: Map[String, TValue]) extends TTable {
+  override def isDefined = true
+  override def isClosed = true
+}
+case class IntermediateTable(value: Map[String, TValue]) extends TTable {
+  override def isDefined = false
+  override def isClosed = false
+}
+case class StandardTable(value: Map[String, TValue]) extends TTable {
+  override def isDefined = true
+  override def isClosed = false
+}

@@ -92,7 +92,7 @@ class ArrayTest extends AnyFunSuite with Matchers with Inside with PartialFuncti
     }
     inside(PValue.parser.parseAll("{ type.name = \"pug\" }")) {
       case Right(InlineTable(table)) => {
-        table valueAt "type" should be(TableTable(Map("name" -> TString("pug"))))
+        table valueAt "type" should be(IntermediateTable(Map("name" -> TString("pug"))))
       }
     }
   }
