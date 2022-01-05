@@ -40,16 +40,16 @@ object PValue {
             case InlineTable(table) =>
               EitherT.leftT(s"Can't modify a defined at: ${cumulPath.append(hd).mkString_(".")}")
             case IntermediateTable(table) => (
-              if (table.contains(hd)) {
-                EitherT(Eval.defer(insertValue(table(hd), NonEmptyList(hl, tl), newVal, cumulPath :+ hd).value))
-                  .map(v => IntermediateTable(table.updated(hd, v)))
-              } else {
-                EitherT(
-                  Eval.defer(
-                    insertValue(IntermediateTable(Map.empty), NonEmptyList(hl, tl), newVal, cumulPath :+ hd).value
-                  )
-                ).map(v => IntermediateTable(table.updated(hd, v)))
-              }
+              EitherT(
+                Eval.defer(
+                  insertValue(
+                    table.getOrElse(hd, IntermediateTable(Map.empty)),
+                    NonEmptyList(hl, tl),
+                    newVal,
+                    cumulPath :+ hd
+                  ).value
+                )
+              ).map(v => IntermediateTable(table.updated(hd, v)))
             )
             case _ => EitherT.leftT(s"Can't modify a defined value at: ${cumulPath.append(hd).mkString_(",")}")
           }

@@ -2,7 +2,7 @@ package online.aoxiang.tomls.ast
 
 import java.time.{ZonedDateTime, LocalDateTime, LocalDate, LocalTime}
 import cats.FlatMap
-import cats.data.Chain
+import cats.data._
 import cats.implicits._
 
 sealed trait TValue
@@ -24,7 +24,9 @@ sealed trait TTable extends TValue {
 }
 
 case class InlineArray(value: Chain[TValue]) extends TArray
-case class TableArray(value: Chain[StandardTable]) extends TArray
+case class TableArray(tables: NonEmptyChain[StandardTable]) extends TArray {
+  def value = tables.toChain
+}
 
 case class InlineTable(value: Map[String, TValue]) extends TTable {
   override def isDefined = true
