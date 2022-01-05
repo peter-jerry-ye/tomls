@@ -2,6 +2,8 @@ package online.aoxiang.tomls.ast
 
 import java.time.{ZonedDateTime, LocalDateTime, LocalDate, LocalTime}
 import cats.FlatMap
+import cats.data.Chain
+import cats.implicits._
 
 sealed trait TValue
 case class TString(value: String) extends TValue
@@ -13,7 +15,7 @@ case class TLocalDateTime(value: LocalDateTime) extends TValue
 case class TLocalDate(value: LocalDate) extends TValue
 case class TLocalTime(value: LocalTime) extends TValue
 sealed trait TArray extends TValue {
-  def value: List[TValue]
+  def value: Chain[TValue]
 }
 sealed trait TTable extends TValue {
   def value: Map[String, TValue]
@@ -21,8 +23,8 @@ sealed trait TTable extends TValue {
   def isClosed: Boolean
 }
 
-case class InlineArray(value: List[TValue]) extends TArray
-case class TableArray(value: List[TValue]) extends TArray
+case class InlineArray(value: Chain[TValue]) extends TArray
+case class TableArray(value: Chain[StandardTable]) extends TArray
 
 case class InlineTable(value: Map[String, TValue]) extends TTable {
   override def isDefined = true
