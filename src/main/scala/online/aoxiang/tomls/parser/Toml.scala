@@ -115,30 +115,34 @@ object PToml {
                 )
                 .map(identity)
           }
+        case hd :: Nil =>
+          value.value.get(hd) match {
+            case Some(TableArray(tables)) => {
+              EitherT(Eval.defer {
+                insertArrayTable(StandardTable(Map.empty), Nil, values, cumulPath :+ hd)
+                  .map(v => TableArray(tables.append(v.asInstanceOf[StandardTable])))
+                  .value
+              }).map(v => value.updated(value.value + (hd -> v)))
+            }
+            case None => {
+              EitherT(Eval.defer {
+                insertArrayTable(StandardTable(Map.empty), Nil, values, cumulPath :+ hd)
+                  .map(v => TableArray(NonEmptyChain(v.asInstanceOf[StandardTable])))
+                  .value
+              }).map(v => value.updated(value.value + (hd -> v)))
+            }
+            case _ => EitherT.leftT(s"Can't modify a defined table at: ${cumulPath.append(hd).mkString_(",")}")
+          }
         case hd :: tl => {
           val updatedValue: Eval[Either[String, TValue]] = Eval.defer {
             value.value.getOrElse(hd, IntermediateTable(Map.empty)) match {
-              case subtable: IntermediateTable =>
-                if (tl.isEmpty)
-                  Eval.now(Left(s"Can't modify a defined table at: ${cumulPath.append(hd).mkString_(",")}"))
-                else insertArrayTable(subtable, tl, values, cumulPath :+ hd).value
-              case subtable: StandardTable =>
-                if (tl.isEmpty)
-                  Eval.now(Left(s"Can't modify a defined table at: ${cumulPath.append(hd).mkString_(",")}"))
-                else insertArrayTable(subtable, tl, values, cumulPath :+ hd).value
+              case subtable: IntermediateTable => insertArrayTable(subtable, tl, values, cumulPath :+ hd).value
+              case subtable: StandardTable     => insertArrayTable(subtable, tl, values, cumulPath :+ hd).value
               case subarray: TableArray => {
-                if (tl.isEmpty) {
-                  insertArrayTable(StandardTable(Map.empty), tl, values, cumulPath :+ hd)
-                    .map(v =>
-                      TableArray(NonEmptyChain.fromChainAppend(subarray.tables.toChain, v.asInstanceOf[StandardTable]))
-                    )
-                    .value
-                } else {
-                  val (init, last) = subarray.tables.initLast
-                  insertArrayTable(last, keys, values, cumulPath :+ hd)
-                    .map(v => TableArray(NonEmptyChain.fromChainAppend(init, v.asInstanceOf[StandardTable])))
-                    .value
-                }
+                val (init, last) = subarray.tables.initLast
+                insertArrayTable(last, keys, values, cumulPath :+ hd)
+                  .map(v => TableArray(NonEmptyChain.fromChainAppend(init, v.asInstanceOf[StandardTable])))
+                  .value
               }
               case _: InlineTable =>
                 Eval.now(Left(s"Can't modify an inline table at: ${cumulPath.append(hd).mkString_(",")}"))

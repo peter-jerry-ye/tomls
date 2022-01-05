@@ -174,6 +174,39 @@ class TomlTest extends AnyFunSuite with Matchers with Inside with PartialFunctio
         }
       }
     }
+    inside(PToml.parser.parseAll("""
+        |[[products]]
+        |name = "Hammer"
+        |sku = 738594937
+        |
+        |[[products]]  # 数组里的空表
+        |
+        |[[products]]
+        |name = "Nail"
+        |sku = 284758393
+        |
+        |color = "gray"
+        """.stripMargin)) {
+      case Right(IntermediateTable(root)) => {
+        inside(root.valueAt("products")) {
+          case TableArray(products) => {
+            inside(products.head) {
+              case StandardTable(head) => {
+                head.valueAt("name") should be(TString("Hammer"))
+                head.valueAt("sku") should be(TInteger(738594937))
+              }
+            }
+            inside(products.last) {
+              case StandardTable(last) => {
+                last.valueAt("name") should be(TString("Nail"))
+                last.valueAt("sku") should be(TInteger(284758393))
+                last.valueAt("color") should be(TString("gray"))
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   test("Parse invalid toml file") {
