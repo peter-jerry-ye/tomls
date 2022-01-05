@@ -41,7 +41,6 @@ class ArrayTest extends AnyFunSuite with Matchers with Inside with PartialFuncti
   test("Parse arrays with mixed types") {
     inside(PValue.parser.parseAll("[ 0.1, 0.2, 0.5, 1, 2, 5 ]")) { case Right(InlineArray(array)) =>
       array should be(Chain(TFloat(0.1), TFloat(0.2), TFloat(0.5), TInteger(1), TInteger(2), TInteger(5)))
-
     }
     inside(
       PValue.parser
@@ -99,5 +98,9 @@ class ArrayTest extends AnyFunSuite with Matchers with Inside with PartialFuncti
         table valueAt "type" should be(IntermediateTable(Map("name" -> TString("pug"))))
       }
     }
+  }
+
+  test("Parse invalid inline table") {
+    inside(PValue.parser.parseAll("{ x = 1, y.z = 2, y = {w = 2} }")) { case Left(_) => }
   }
 }

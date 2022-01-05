@@ -27,16 +27,18 @@ object PValue {
       path match {
         case NonEmptyList(hd, Nil) =>
           value match {
-            case InlineTable(table) => EitherT.leftT(s"Can't modify a defined table at: ${cumulPath.mkString_(",")}")
+            case InlineTable(table) =>
+              EitherT.leftT(s"Can't modify a defined table at: ${cumulPath.append(hd).mkString_(".")}")
             case IntermediateTable(table) =>
-              if (table.contains(hd)) EitherT.leftT(s"Can't modify a defined value at: ${cumulPath.mkString_(",")}")
+              if (table.contains(hd))
+                EitherT.leftT(s"Can't modify a defined value at: ${cumulPath.append(hd).mkString_(".")}")
               else EitherT.rightT(IntermediateTable(table + (hd -> newVal)))
-            case _ => EitherT.leftT(s"Can't modify a defined value at: ${cumulPath.mkString_(",")}")
+            case _ => EitherT.leftT(s"Can't modify a defined value at: ${cumulPath.append(hd).mkString_(".")}")
           }
         case NonEmptyList(hd, hl :: tl) =>
           value match {
             case InlineTable(table) =>
-              EitherT.leftT(s"Can't modify a defined at: ${cumulPath.mkString_(",")}")
+              EitherT.leftT(s"Can't modify a defined at: ${cumulPath.append(hd).mkString_(".")}")
             case IntermediateTable(table) => (
               if (table.contains(hd)) {
                 EitherT(Eval.defer(insertValue(table(hd), NonEmptyList(hl, tl), newVal, cumulPath :+ hd).value))
@@ -49,7 +51,7 @@ object PValue {
                 ).map(v => IntermediateTable(table.updated(hd, v)))
               }
             )
-            case _ => EitherT.leftT(s"Can't modify a defined value at: ${cumulPath.mkString_(",")}")
+            case _ => EitherT.leftT(s"Can't modify a defined value at: ${cumulPath.append(hd).mkString_(",")}")
           }
       }
     }
