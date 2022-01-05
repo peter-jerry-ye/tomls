@@ -162,7 +162,7 @@ object PToml {
               case IntermediateTable(table) =>
                 if (table.contains(hd))
                   EitherT.leftT(s"Can't modify a defined value at: ${cumulPath.append(hd).mkString_(".")}")
-                else EitherT.rightT(IntermediateTable(table + (hd -> newVal)))
+                else EitherT.rightT(StandardTable(table + (hd -> newVal)))
               case StandardTable(table) =>
                 if (table.contains(hd))
                   EitherT.leftT(s"Can't modify a defined value at: ${cumulPath.append(hd).mkString_(".")}")
@@ -188,13 +188,13 @@ object PToml {
                       cumulPath :+ hd
                     ).value
                   )
-                ).map(v => IntermediateTable(table.updated(hd, v)))
+                ).map(v => StandardTable(table.updated(hd, v)))
               )
               case StandardTable(table) => (
                 EitherT(
                   Eval.defer(
                     insertValue(
-                      table.getOrElse(hd, IntermediateTable(Map.empty)),
+                      table.getOrElse(hd, StandardTable(Map.empty)),
                       NonEmptyList(hl, tl),
                       newVal,
                       cumulPath :+ hd
@@ -207,7 +207,7 @@ object PToml {
                 EitherT(
                   Eval.defer(
                     insertValue(
-                      last.getOrElse(hd, IntermediateTable(Map.empty)),
+                      last.getOrElse(hd, StandardTable(Map.empty)),
                       NonEmptyList(hl, tl),
                       newVal,
                       cumulPath :+ hd

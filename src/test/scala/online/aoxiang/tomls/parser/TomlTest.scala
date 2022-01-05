@@ -40,17 +40,17 @@ class TomlTest extends AnyFunSuite with Matchers with Inside with PartialFunctio
         |physical.shape = "round"
         |site."google.com" = true
         |""".stripMargin)) {
-      case (Right(IntermediateTable(table))) => {
-        table.valueAt("name") should be(TString("Orange"))
-        inside(table.valueAt("physical")) {
-          case IntermediateTable(t2) => {
-            t2.valueAt("color") should be(TString("orange"))
-            t2.valueAt("shape") should be(TString("round"))
+      case (Right(IntermediateTable(root))) => {
+        root.valueAt("name") should be(TString("Orange"))
+        inside(root.valueAt("physical")) {
+          case StandardTable(physical) => {
+            physical.valueAt("color") should be(TString("orange"))
+            physical.valueAt("shape") should be(TString("round"))
           }
         }
-        inside(table.valueAt("site")) {
-          case IntermediateTable(t2) => {
-            t2.valueAt("google.com") should be(TBoolean(true))
+        inside(root.valueAt("site")) {
+          case StandardTable(site) => {
+            site.valueAt("google.com") should be(TBoolean(true))
           }
         }
       }
@@ -62,7 +62,7 @@ class TomlTest extends AnyFunSuite with Matchers with Inside with PartialFunctio
         |""".stripMargin)) {
       case Right(IntermediateTable(table)) => {
         inside(table.valueAt("fruit")) {
-          case IntermediateTable(t2) => {
+          case StandardTable(t2) => {
             t2.valueAt("name") should be(TString("banana"))
             t2.valueAt("color") should be(TString("yellow"))
             t2.valueAt("flavor") should be(TString("banana"))
@@ -79,10 +79,10 @@ class TomlTest extends AnyFunSuite with Matchers with Inside with PartialFunctio
         |""".stripMargin)) {
       case Right(IntermediateTable(table)) => {
         inside(table.valueAt("fruit")) {
-          case IntermediateTable(t2) => {
-            t2.valueAt("orange") should be(TInteger(2))
-            inside(t2.valueAt("apple")) { case IntermediateTable(t3) =>
-              t3.valueAt("smooth") should be(TBoolean(true))
+          case StandardTable(fruit) => {
+            fruit.valueAt("orange") should be(TInteger(2))
+            inside(fruit.valueAt("apple")) { case StandardTable(apple) =>
+              apple.valueAt("smooth") should be(TBoolean(true))
             }
           }
         }
@@ -102,14 +102,14 @@ class TomlTest extends AnyFunSuite with Matchers with Inside with PartialFunctio
         """.stripMargin)) {
       case Right(IntermediateTable(table)) => {
         inside(table.valueAt("apple")) {
-          case IntermediateTable(apple) => {
+          case StandardTable(apple) => {
             apple.valueAt("type") should be(TString("水果"))
             apple.valueAt("skin") should be(TString("薄"))
             apple.valueAt("color") should be(TString("红"))
           }
         }
         inside(table.valueAt("orange")) {
-          case IntermediateTable(orange) => {
+          case StandardTable(orange) => {
             orange.valueAt("type") should be(TString("水果"))
             orange.valueAt("skin") should be(TString("厚"))
             orange.valueAt("color") should be(TString("橙"))
@@ -147,7 +147,7 @@ class TomlTest extends AnyFunSuite with Matchers with Inside with PartialFunctio
         """.stripMargin)) { case Right(IntermediateTable(root)) =>
       inside(root.valueAt("dog")) { case IntermediateTable(dog) =>
         inside(dog.valueAt("tater.man")) { case StandardTable(taterman) =>
-          inside(taterman.valueAt("type")) { case IntermediateTable(t) =>
+          inside(taterman.valueAt("type")) { case StandardTable(t) =>
             t.valueAt("name") should be(TString("pug"))
           }
         }
@@ -204,6 +204,14 @@ class TomlTest extends AnyFunSuite with Matchers with Inside with PartialFunctio
       |
       |[fruit.apple]
       |texture = "光滑"
+      """.stripMargin,
+      """
+      |[fruit]
+      |apple.color = "红"
+      |apple.taste.sweet = true
+      |
+      |[fruit.apple]  # 非法
+      |[fruit.apple.taste]  # 非法
       """.stripMargin
     )
     forAll(invalid) { s =>
