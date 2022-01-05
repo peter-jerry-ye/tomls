@@ -207,6 +207,52 @@ class TomlTest extends AnyFunSuite with Matchers with Inside with PartialFunctio
         }
       }
     }
+    inside(PToml.parser.parseAll("""
+        |[[fruits]]
+        |name = "apple"
+        |
+        |[fruits.physical]  # 子表
+        |color = "red"
+        |shape = "round"
+        |
+        |[[fruits.varieties]]  # 嵌套表数组
+        |name = "red delicious"
+        |
+        |[[fruits.varieties]]
+        |name = "granny smith"
+        |
+        |[[fruits]]
+        |name = "banana"
+        |
+        |[[fruits.varieties]]
+        |name = "plantain"
+        |""".stripMargin)) { case Right(IntermediateTable(root)) =>
+      inside(root.valueAt("fruits")) { case TableArray(fruit) =>
+        inside(fruit.head) { case StandardTable(head) =>
+          head.valueAt("name") should be(TString("apple"))
+          inside(head.valueAt("physical")) {
+            case StandardTable(physical) => {
+              physical.valueAt("color") should be(TString("red"))
+              physical.valueAt("shape") should be(TString("round"))
+            }
+          }
+          inside(head.valueAt("varieties")) { case TableArray(varieties) =>
+            varieties.length should be(2)
+          }
+        }
+        inside(fruit.last) {
+          case StandardTable(last) => {
+            last.valueAt("name") should be(TString("banana"))
+            inside(last.valueAt("varieties")) {
+              case TableArray(varieties) => {
+                varieties.length should be(1)
+              }
+            }
+          }
+        }
+
+      }
+    }
   }
 
   test("Parse invalid toml file") {

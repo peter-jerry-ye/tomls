@@ -140,7 +140,7 @@ object PToml {
               case subtable: StandardTable     => insertArrayTable(subtable, tl, values, cumulPath :+ hd).value
               case subarray: TableArray => {
                 val (init, last) = subarray.tables.initLast
-                insertArrayTable(last, keys, values, cumulPath :+ hd)
+                insertArrayTable(last, tl, values, cumulPath :+ hd)
                   .map(v => TableArray(NonEmptyChain.fromChainAppend(init, v.asInstanceOf[StandardTable])))
                   .value
               }
