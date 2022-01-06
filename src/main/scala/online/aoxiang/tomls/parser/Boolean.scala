@@ -1,7 +1,6 @@
 package online.aoxiang.tomls.parser
 
 import cats.parse.Parser
-import online.aoxiang.tomls.ast.TBoolean
 
 object PBoolean {
   val parser: Parser[TBoolean] = {

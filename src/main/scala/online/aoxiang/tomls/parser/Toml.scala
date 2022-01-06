@@ -2,7 +2,6 @@ package online.aoxiang.tomls.parser
 
 import cats.parse.Parser
 import Parsers._
-import online.aoxiang.tomls.ast.TValue
 import cats.data.NonEmptyList
 import cats.data.NonEmptyChain
 import cats.data.Chain
@@ -10,11 +9,6 @@ import cats.implicits._
 import cats.parse.Parser0
 import cats.data.EitherT
 import cats.Eval
-import online.aoxiang.tomls.ast.IntermediateTable
-import online.aoxiang.tomls.ast.TTable
-import online.aoxiang.tomls.ast.StandardTable
-import online.aoxiang.tomls.ast.InlineTable
-import online.aoxiang.tomls.ast.TableArray
 
 object PToml {
   def parser: Parser0[IntermediateTable] = {

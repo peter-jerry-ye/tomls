@@ -3,7 +3,6 @@ package online.aoxiang.tomls.parser
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import online.aoxiang.tomls.ast._
 import org.scalatest.Inside
 import org.scalatest.PartialFunctionValues
 import cats.data.Chain

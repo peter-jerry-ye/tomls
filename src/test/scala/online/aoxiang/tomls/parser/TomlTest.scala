@@ -5,7 +5,6 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import org.scalatest.Inside
 import org.scalatest.PartialFunctionValues
-import online.aoxiang.tomls.ast._
 import java.time.LocalDate
 
 class TomlTest extends AnyFunSuite with Matchers with Inside with PartialFunctionValues with ScalaCheckPropertyChecks {

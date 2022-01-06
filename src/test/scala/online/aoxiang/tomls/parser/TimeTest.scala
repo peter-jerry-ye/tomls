@@ -3,7 +3,6 @@ package online.aoxiang.tomls.parser
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import online.aoxiang.tomls.ast._
 
 class TimeTest extends AnyFunSuite with Matchers with ScalaCheckPropertyChecks {
   test("Parse valid time") {

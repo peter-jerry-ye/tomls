@@ -6,7 +6,6 @@ import cats.parse.Parser
 import cats.parse.Parser0
 import cats.parse.Rfc5234._
 import cats.data.NonEmptyList
-import online.aoxiang.tomls.ast.TString
 
 trait PString {
   def value: String

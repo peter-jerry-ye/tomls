@@ -4,7 +4,6 @@ import cats.implicits._
 import cats.parse.Parser
 import cats.parse.Rfc5234._
 import cats.data.NonEmptyList
-import online.aoxiang.tomls.ast.TFloat
 
 sealed trait PFloat {
   def value: Either[NumberFormatException, Double]
