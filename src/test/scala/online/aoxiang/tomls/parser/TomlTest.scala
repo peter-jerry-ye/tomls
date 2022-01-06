@@ -290,6 +290,41 @@ class TomlTest extends AnyFunSuite with Matchers with Inside with PartialFunctio
       |
       |[fruit.apple]  # 非法
       |[fruit.apple.taste]  # 非法
+      """.stripMargin,
+      """
+      |# 非法的 TOML 文档
+      |fruits = []
+      |
+      |[[fruits]] # 不允许
+      """.stripMargin,
+      """
+      |# 非法的 TOML 文档
+      |[fruit.physical]  # 子表，但它应该隶属于哪个父元素？
+      |color = "red"
+      |shape = "round"
+      |
+      |[[fruit]]  # 解析器必须在发现“fruit”是数组而非表时抛出错误
+      |name = "apple"
+      """.stripMargin,
+      """
+      |# 非法的 TOML 文档
+      |[[fruits]]
+      |name = "apple"
+      |
+      |[[fruits.varieties]]
+      |name = "red delicious"
+      |
+      |# 非法：该表与之前的表数组相冲突
+      |[fruits.varieties]
+      |name = "granny smith"
+      |
+      |[fruits.physical]
+      |color = "red"
+      |shape = "round"
+      |
+      |# 非法：该表数组与之前的表相冲突
+      |[[fruits.physical]]
+      |color = "green"
       """.stripMargin
     )
     forAll(invalid) { s =>
