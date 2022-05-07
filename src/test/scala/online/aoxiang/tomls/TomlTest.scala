@@ -41,6 +41,12 @@ class TomlTest extends AnyFunSuite with Matchers with Inside {
       |"this\"is\nalso\ta key" = 5
       """.stripMargin.stripLeading.stripTrailing)
   }
+  test("Show as extension method") {
+    TLong(5).show should be("5")
+    TDouble(5.0).show should be("5.0")
+    (TBool(true).asInstanceOf[Toml]).show should be("true")
+    TArray(List(TLong(5), TDouble(5.0), TBool(true), TArray(List()))).show should be("[5, 5.0, true, []]")
+  }
   test("Show") {
     inside(Toml.parser.parseAll("""
         |key = "value"

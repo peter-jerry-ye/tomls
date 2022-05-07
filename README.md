@@ -10,7 +10,7 @@ A toml parsing library in Scala 3 developped with cats-parse
 
 ```scala
 resolvers += "aoxiang-repo-snapshots" at "https://repo.aoxiang.online/snapshots"
-libraryDependencies += "online.aoxiang" % "tomls" % "0.1.2-SNAPSHOT"
+libraryDependencies += "online.aoxiang" % "tomls" % "0.1.3-SNAPSHOT"
 ```
 
 #### API
@@ -36,10 +36,8 @@ Parser and Show 解析器与序列化：
 ```scala
 object Toml {
   val parser: Parser0[TObject]
+  extension [T <: Toml](t: T) def show(using showT: Show[T])
 }
-
-val v: Toml = ???
-v.show // String
 ```
 
 ### TODO 待做
@@ -47,3 +45,4 @@ v.show // String
 - Test compliance 测试兼容性 (Waiting for [official compliance test](https://github.com/toml-lang/compliance) 等待[官方测试](https://github.com/toml-lang/compliance))
 - Test performance 测试性能
 - Extra functionalities 额外功能
+- ScalaJS support 支持ScalaJS

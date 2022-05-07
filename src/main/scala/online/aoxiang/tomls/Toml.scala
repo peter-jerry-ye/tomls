@@ -102,42 +102,23 @@ object Toml {
   given show_inline_toml_array(using IsInline): Show[TArray] with {
     def show(array: TArray): String = {
       array.value
-        .map(toml =>
-          toml match {
-            case v: TLong          => v.show
-            case v: TBool          => v.show
-            case v: TDouble        => v.show
-            case v: TZonedDateTime => v.show
-            case v: TLocalDateTime => v.show
-            case v: TLocalDate     => v.show
-            case v: TLocalTime     => v.show
-            case v: TString        => v.show
-            case v: TObject        => v.show
-            case v: TArray         => v.show
-          }
-        )
-        .mkString("[", ",", "]")
+        .map(toml => toml.show)
+        .mkString("[", ", ", "]")
     }
   }
 
   given show_inline_toml_object(using IsInline): Show[TObject] with {
     def show(obj: TObject): String = {
       obj.value
-        .map((key, toml) =>
-          toml match {
-            case v: TLong          => s"${keyToString(key)} = ${v.show}"
-            case v: TBool          => s"${keyToString(key)} = ${v.show}"
-            case v: TDouble        => s"${keyToString(key)} = ${v.show}"
-            case v: TZonedDateTime => s"${keyToString(key)} = ${v.show}"
-            case v: TLocalDateTime => s"${keyToString(key)} = ${v.show}"
-            case v: TLocalDate     => s"${keyToString(key)} = ${v.show}"
-            case v: TLocalTime     => s"${keyToString(key)} = ${v.show}"
-            case v: TString        => s"${keyToString(key)} = ${v.show}"
-            case v: TObject        => s"${keyToString(key)} = ${v.show}"
-            case v: TArray         => s"${keyToString(key)} = ${v.show}"
-          }
-        )
+        .map((key, toml) => s"${keyToString(key)} = ${toml.show}")
         .mkString("{", ",", "}")
+    }
+  }
+
+  given show_toml_array_without_context(using NotGiven[IsInline], NotGiven[Path]): Show[TArray] with {
+    def show(array: TArray): String = {
+      given isInline: IsInline = ()
+      array.show
     }
   }
 
@@ -164,14 +145,6 @@ object Toml {
     def show(obj: TObject): String = {
       val (inner, outer) = obj.value.partitionMap((key, value) =>
         value match {
-          case v: TLong          => Left(s"${keyToString(key)} = ${v.show}")
-          case v: TBool          => Left(s"${keyToString(key)} = ${v.show}")
-          case v: TDouble        => Left(s"${keyToString(key)} = ${v.show}")
-          case v: TZonedDateTime => Left(s"${keyToString(key)} = ${v.show}")
-          case v: TLocalDateTime => Left(s"${keyToString(key)} = ${v.show}")
-          case v: TLocalDate     => Left(s"${keyToString(key)} = ${v.show}")
-          case v: TLocalTime     => Left(s"${keyToString(key)} = ${v.show}")
-          case v: TString        => Left(s"${keyToString(key)} = ${v.show}")
           case v: TObject => {
             given subPath: Path = path :+ key
             val header = s"[${subPath.map(keyToString).mkString(".")}]"
@@ -187,6 +160,7 @@ object Toml {
               Left(v.show)
             }
           }
+          case v: Toml => Left(s"${keyToString(key)} = ${v.show}")
         }
       )
 
@@ -201,5 +175,22 @@ object Toml {
     }
   }
 
-  export cats.implicits.toShow
+  given show_toml: Show[Toml] with {
+    def show(toml: Toml): String = {
+      toml match {
+        case v: TLong          => v.show
+        case v: TBool          => v.show
+        case v: TDouble        => v.show
+        case v: TZonedDateTime => v.show
+        case v: TLocalDateTime => v.show
+        case v: TLocalDate     => v.show
+        case v: TLocalTime     => v.show
+        case v: TString        => v.show
+        case v: TObject        => v.show
+        case v: TArray         => v.show
+      }
+    }
+  }
+
+  extension [T <: Toml](t: T) def show(using showT: Show[T]) = showT.show(t)
 }
