@@ -65,8 +65,27 @@ class TomlTest extends AnyFunSuite with Matchers with Inside {
         |
         |[[fruits.varieties]]
         |name = "plantain"
-        |""".stripMargin)) { case Right(toml) =>
+        """.stripMargin)) { case Right(toml) =>
       Toml.parser.parseAll(toml.show) should be(Right(toml))
+      toml.show should be("""
+        |key = "value"
+        |[owner]
+        |name = "Regina Dogman"
+        |member_since = 1999-08-04
+        |[[fruits]]
+        |name = "apple"
+        |[fruits.physical]
+        |color = "red"
+        |shape = "round"
+        |[[fruits.varieties]]
+        |name = "red delicious"
+        |[[fruits.varieties]]
+        |name = "granny smith"
+        |[[fruits]]
+        |name = "banana"
+        |[[fruits.varieties]]
+        |name = "plantain"
+        """.stripMargin.stripLeading.stripTrailing)
     }
   }
 }
