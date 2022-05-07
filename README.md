@@ -10,7 +10,7 @@ A toml parsing library in Scala 3 developped with cats-parse
 
 ```scala
 resolvers += "aoxiang-repo-snapshots" at "https://repo.aoxiang.online/snapshots"
-libraryDependencies += "online.aoxiang" % "tomls" % "0.1.0-SNAPSHOT"
+libraryDependencies += "online.aoxiang" % "tomls" % "0.1.2-SNAPSHOT"
 ```
 
 #### API
