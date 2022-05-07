@@ -33,6 +33,14 @@ class TomlTest extends AnyFunSuite with Matchers with Inside {
       }
     }
   }
+  test("Show key with extra symbol") {
+    TObject(Map("this.is.a.key" -> TLong(5))).show should be("""
+      |"this.is.a.key" = 5
+      """.stripMargin.stripLeading.stripTrailing)
+    TObject(Map("this\"is\nalso\ta key" -> TLong(5))).show should be("""
+      |"this\"is\nalso\ta key" = 5
+      """.stripMargin.stripLeading.stripTrailing)
+  }
   test("Show") {
     inside(Toml.parser.parseAll("""
         |key = "value"

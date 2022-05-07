@@ -3,6 +3,7 @@ package online.aoxiang.tomls
 import cats.parse.Parser0
 import online.aoxiang.tomls.parser.PToml
 import cats.Eval
+import cats.Show
 import cats.implicits._
 import java.time._
 import java.time.format.DateTimeFormatter
@@ -40,43 +41,72 @@ object Toml {
     PToml.parser.map(astToToml(_).value.asInstanceOf[TObject])
   }
 
+  given Show[TLong] with {
+    def show(value: TLong) = value.value.show
+  }
+
+  given Show[TBool] with {
+    def show(value: TBool) = value.value.show
+  }
+
+  given Show[TDouble] with {
+    def show(value: TDouble) = value.value.show
+  }
+
+  given Show[TZonedDateTime] with {
+    def show(value: TZonedDateTime) = value.value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+  }
+
+  given Show[TLocalDateTime] with {
+    def show(value: TLocalDateTime) = value.value.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+  }
+
+  given Show[TLocalDate] with {
+    def show(value: TLocalDate) = value.value.format(DateTimeFormatter.ISO_LOCAL_DATE)
+  }
+
+  given Show[TLocalTime] with {
+    def show(value: TLocalTime) = value.value.format(DateTimeFormatter.ISO_LOCAL_TIME)
+  }
+
+  given Show[TString] with {
+    def show(value: TString) = {
+      val escaped = value.value.flatMap(c =>
+        c match {
+          case '\"' => "\\\""
+          case '\\' => raw"\\"
+          case '\b' => raw"\b"
+          case '\f' => raw"\f"
+          case '\n' => raw"\n"
+          case '\r' => raw"\r"
+          case '\t' => raw"\t"
+          case _    => s"${c}"
+        }
+      )
+      s"\"${escaped}\""
+    }
+  }
+
+  private def keyToString(key: String): String = {
+    TString(key).show
+  }
+
   extension (t: TObject)
     def show: String = {
-      def valueToString(
-          v: TLong | TBool | TDouble | TZonedDateTime | TLocalDateTime | TLocalDate | TLocalTime
-      ): String = v match {
-        case TLong(i)          => i.show
-        case TBool(b)          => b.show
-        case TDouble(f)        => f.show
-        case TZonedDateTime(t) => t.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-        case TLocalDateTime(t) => t.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-        case TLocalDate(t)     => t.format(DateTimeFormatter.ISO_LOCAL_DATE)
-        case TLocalTime(t)     => t.format(DateTimeFormatter.ISO_LOCAL_TIME)
-      }
-      def strToString(v: TString): String = {
-        val escaped = v.value.flatMap(c =>
-          c match {
-            case '\"' => "\\\""
-            case '\\' => raw"\\"
-            case '\b' => raw"\b"
-            case '\f' => raw"\f"
-            case '\n' => raw"\n"
-            case '\r' => raw"\r"
-            case '\t' => raw"\t"
-            case _    => s"${c}"
-          }
-        )
-        s"\"${escaped}\""
-      }
       def inlineObjectToString(o: TObject): String = {
         o.value
           .map((key, toml) =>
             toml match {
-              case v: (TLong | TBool | TDouble | TZonedDateTime | TLocalDateTime | TLocalDate | TLocalTime) =>
-                s"${key} = ${valueToString(v)}"
-              case s: TString => s"${key} = ${strToString(s)}"
-              case o: TObject => s"${key} = ${inlineObjectToString(o)}"
-              case r: TArray  => s"${key} = ${inlineArrayToString(r)}"
+              case v: TLong          => s"${keyToString(key)} = ${v.show}"
+              case v: TBool          => s"${keyToString(key)} = ${v.show}"
+              case v: TDouble        => s"${keyToString(key)} = ${v.show}"
+              case v: TZonedDateTime => s"${keyToString(key)} = ${v.show}"
+              case v: TLocalDateTime => s"${keyToString(key)} = ${v.show}"
+              case v: TLocalDate     => s"${keyToString(key)} = ${v.show}"
+              case v: TLocalTime     => s"${keyToString(key)} = ${v.show}"
+              case v: TString        => s"${keyToString(key)} = ${v.show}"
+              case o: TObject        => s"${keyToString(key)} = ${inlineObjectToString(o)}"
+              case r: TArray         => s"${keyToString(key)} = ${inlineArrayToString(r)}"
             }
           )
           .mkString("{", ",", "}")
@@ -86,11 +116,16 @@ object Toml {
         a.value
           .map(toml =>
             toml match {
-              case v: (TLong | TBool | TDouble | TZonedDateTime | TLocalDateTime | TLocalDate | TLocalTime) =>
-                valueToString(v)
-              case s: TString => strToString(s)
-              case o: TObject => inlineObjectToString(o)
-              case r: TArray  => inlineArrayToString(r)
+              case v: TLong          => v.show
+              case v: TBool          => v.show
+              case v: TDouble        => v.show
+              case v: TZonedDateTime => v.show
+              case v: TLocalDateTime => v.show
+              case v: TLocalDate     => v.show
+              case v: TLocalTime     => v.show
+              case v: TString        => v.show
+              case o: TObject        => inlineObjectToString(o)
+              case r: TArray         => inlineArrayToString(r)
             }
           )
           .mkString("[", ",", "]")
@@ -98,11 +133,16 @@ object Toml {
       t.value
         .map((key, toml) =>
           toml match {
-            case v: (TLong | TBool | TDouble | TZonedDateTime | TLocalDateTime | TLocalDate | TLocalTime) =>
-              s"${key} = ${valueToString(v)}"
-            case s: TString => s"${key} = ${strToString(s)}"
-            case o: TObject => s"${key} = ${inlineObjectToString(o)}"
-            case r: TArray  => s"${key} = ${inlineArrayToString(r)}"
+            case v: TLong          => s"${keyToString(key)} = ${v.show}"
+            case v: TBool          => s"${keyToString(key)} = ${v.show}"
+            case v: TDouble        => s"${keyToString(key)} = ${v.show}"
+            case v: TZonedDateTime => s"${keyToString(key)} = ${v.show}"
+            case v: TLocalDateTime => s"${keyToString(key)} = ${v.show}"
+            case v: TLocalDate     => s"${keyToString(key)} = ${v.show}"
+            case v: TLocalTime     => s"${keyToString(key)} = ${v.show}"
+            case v: TString        => s"${keyToString(key)} = ${v.show}"
+            case o: TObject        => s"${keyToString(key)} = ${inlineObjectToString(o)}"
+            case r: TArray         => s"${keyToString(key)} = ${inlineArrayToString(r)}"
           }
         )
         .mkString(util.Properties.lineSeparator)
